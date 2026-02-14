@@ -7,6 +7,7 @@ import { getAllCountries } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import CountryDetails from '@/components/CountryDetails';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -60,6 +61,7 @@ export default function Home() {
             allCountries={countries}
             onSelectBorder={setSelectedCode}
           />
+          <Footer />
         </main>
       </div>
     </div>
