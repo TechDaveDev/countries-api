@@ -1,75 +1,67 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
 import { Country } from '@/lib/types';
 import { getAllCountries } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
 import CountryDetails from '@/components/CountryDetails';
-import { MenuIcon } from '@/components/Icons';
 
 export default function Home() {
   const [countries, setCountries] = useState<Country[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCountries = async () => {
-      setLoading(true);
-      const data = await getAllCountries();
+    getAllCountries().then(data => {
       setCountries(data);
-      if (data.length > 0) {
-        const randomIndex = Math.floor(Math.random() * data.length);
-        setSelectedCountry(data[randomIndex]);
-      }
+      if (data.length > 0) setSelectedCode('ESP');
       setLoading(false);
-    };
-    fetchCountries();
+    });
   }, []);
 
-  const handleSelectCountry = (country: Country) => {
-    setSelectedCountry(country);
-    setIsSidebarOpen(false);
-  };
+  const selectedCountry = useMemo(() =>
+    countries.find(c => c.cca3 === selectedCode) || null
+    , [countries, selectedCode]);
 
   const filteredCountries = useMemo(() =>
-    countries.filter((country) =>
-      country.name.common.toLowerCase().includes(searchTerm.toLowerCase())
-    ), [countries, searchTerm]
+    countries.filter(c => c.name.common.toLowerCase().includes(search.toLowerCase()))
+    , [countries, search]);
+
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+      <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+    </div>
   );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-2xl font-semibold animate-pulse">Cargando países...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <main className="flex h-screen overflow-hidden">
-      <button
-        onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-4 left-4 z-50 md:hidden p-2 bg-slate-800 rounded-full text-white shadow-lg"
-      >
-        <MenuIcon className="w-6 h-6" />
-      </button>
-
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         countries={filteredCountries}
-        onSelectCountry={handleSelectCountry}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        selectedCode={selectedCode}
+        onSelectCountry={(code) => { setSelectedCode(code); setIsSidebarOpen(false); }}
+        searchTerm={search}
+        setSearchTerm={setSearch}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className="flex-1 md:ml-72">
-        <CountryDetails country={selectedCountry} allCountries={countries} />
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <Header
+          onOpenMobileMenu={() => setIsSidebarOpen(true)}
+          currentCountryName={selectedCountry?.name.common}
+        />
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950/50">
+          <CountryDetails
+            country={selectedCountry}
+            allCountries={countries}
+            onSelectBorder={setSelectedCode}
+          />
+        </main>
       </div>
-    </main>
+    </div>
   );
 }

@@ -21,3 +21,5 @@ export interface Country {
   };
   borders: string[];
 }
+
+export type Theme = 'light' | 'dark';

@@ -6,7 +6,7 @@ export async function getAllCountries(): Promise<Country[]> {
       'https://restcountries.com/v3.1/all?fields=name,cca3,flags,population,region,subregion,capital,languages,currencies,borders'
     );
     if (!response.ok) {
-      throw new Error('Failed to fetch countries');
+      throw new Error('Failed to fetch');
     }
     const data: Country[] = await response.json();
     return data.sort((a, b) => a.name.common.localeCompare(b.name.common));
